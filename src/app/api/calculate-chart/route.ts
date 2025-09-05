@@ -156,7 +156,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   console.log('API route called');
   try {
-    const { date, time, location } = await request.json();
+    const { name, date, time, location } = await request.json();
     console.log('Request data:', { date, time, location });
     
     if (!date || !time || !location) {
@@ -238,6 +238,7 @@ export async function POST(request: NextRequest) {
       midheaven: astroData.midheaven,
       houseCusps,
       birthInfo: { 
+        name: name || undefined,
         date, 
         time, 
         location: {

@@ -1,4 +1,5 @@
 export interface BirthInfo {
+  name?: string; // User's name
   date: string; // YYYY-MM-DD
   time: string; // HH:MM:SS
   location: {

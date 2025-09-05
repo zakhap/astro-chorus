@@ -32,8 +32,11 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Only auto-scroll to bottom if not loading default explanations or if user has sent a message
+    if (explanationsLoaded && messages.some(msg => msg.character === 'user')) {
+      scrollToBottom();
+    }
+  }, [messages, explanationsLoaded]);
 
   // Load default explanations when chart loads
   useEffect(() => {
@@ -300,7 +303,12 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
           {/* Back Button - Fixed at Top Left */}
           <div className="absolute top-4 left-4 z-10">
             <button
-              onClick={onBack}
+              onClick={() => {
+                // Clear chart explanations from localStorage
+                const cacheKey = `chart_explanations_${JSON.stringify(reading.birthInfo)}`;
+                localStorage.removeItem(cacheKey);
+                onBack();
+              }}
               className="text-sm text-black/60 hover:text-black transition-colors"
             >
               ← Back
@@ -313,7 +321,9 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
               {/* Header */}
               <div className="mb-6 text-center">
                 <div className="text-xs text-black/60 mb-2">AstroChat - Your Astrological Reading</div>
-                <div className="text-lg font-bold text-black">YOUR BIRTH CHART</div>
+                <div className="text-lg font-bold text-black">
+                  {reading.birthInfo.name ? `${reading.birthInfo.name}'s Birth Chart` : 'YOUR BIRTH CHART'}
+                </div>
               </div>
 
               {/* Birth Data */}

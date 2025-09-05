@@ -10,6 +10,7 @@ interface TerminalBirthFormProps {
 
 export default function TerminalBirthForm({ onSubmit, loading = false }: TerminalBirthFormProps) {
   const [formData, setFormData] = useState({
+    name: '',
     date: '',
     time: '',
     location: '',
@@ -62,6 +63,7 @@ export default function TerminalBirthForm({ onSubmit, loading = false }: Termina
     }
 
     const birthInfo: BirthInfo = {
+      name: formData.name.trim() || undefined,
       date: formData.date,
       time: formData.time + ':00',
       location: {
@@ -109,6 +111,23 @@ export default function TerminalBirthForm({ onSubmit, loading = false }: Termina
             <div className="text-xs text-black/60 mb-4">Enter your birth information:</div>
             
             <div className="space-y-4">
+              {/* Name Input */}
+              <div className="pl-4">
+                <label className="text-xs text-black block mb-2">
+                  Your Name (optional):
+                </label>
+                <div className="flex items-center">
+                  <span className="text-black mr-2">{'>'}</span>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="enter your name..."
+                    className="bg-transparent outline-none text-black text-xs border-b border-black/30 focus:border-black flex-1 placeholder-black/30"
+                  />
+                </div>
+              </div>
+
               {/* Date Input */}
               <div className="pl-4">
                 <label className="text-xs text-black block mb-2">

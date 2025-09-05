@@ -55,6 +55,30 @@ async function generateChartExplanations(reading: AstrologyReading) {
     title: 'Your Planetary Relationships',
     content: aspectsExplanation
   });
+
+  // 4. Element Balance Explanation
+  const elementExplanation = generateElementBalanceExplanation(reading);
+  explanations.push({
+    id: 'element-balance',
+    title: 'Your Elemental Temperament',
+    content: elementExplanation
+  });
+
+  // 5. Modal Balance Explanation
+  const modalExplanation = generateModalBalanceExplanation(reading);
+  explanations.push({
+    id: 'modal-balance',
+    title: 'Your Action Patterns',
+    content: modalExplanation
+  });
+
+  // 6. Dispositor Chart Explanation
+  const dispositorExplanation = generateDispositorChartExplanation(reading);
+  explanations.push({
+    id: 'dispositor-chart',
+    title: 'Your Power Structure',
+    content: dispositorExplanation
+  });
   
   return explanations;
 }
@@ -279,6 +303,62 @@ function getPlanetInHouseInterpretation(planetName: string, house: number): stri
       10: 'Ambitious career focus, serious reputation building, authority development.',
       11: 'Serious friendships, structured group involvement, disciplined social goals.',
       12: 'Spiritual discipline, hidden restrictions, serious inner work required.'
+    },
+    'Uranus': {
+      1: 'Unique identity, rebellious nature, innovative self-expression, sudden life changes.',
+      2: 'Unconventional approach to resources, sudden financial changes, innovative earning.',
+      3: 'Original thinking, unusual siblings, breakthrough communication methods.',
+      4: 'Unusual family background, innovative home life, sudden domestic changes.',
+      5: 'Creative originality, unconventional romance, unique approach to children.',
+      6: 'Innovative work methods, unusual health approaches, revolutionary service.',
+      7: 'Unusual partnerships, need for freedom in relationships, sudden relationship changes.',
+      8: 'Sudden transformations, innovative approach to shared resources, revolutionary psychology.',
+      9: 'Original beliefs, unusual higher learning, innovative philosophical approaches.',
+      10: 'Unconventional career, sudden reputation changes, innovative public role.',
+      11: 'Unusual friendships, revolutionary group involvement, humanitarian innovation.',
+      12: 'Spiritual breakthroughs, hidden innovations, sudden spiritual awakenings.'
+    },
+    'Neptune': {
+      1: 'Dreamy identity, compassionate presence, potential identity confusion, spiritual sensitivity.',
+      2: 'Idealistic about resources, potential financial confusion, compassionate values.',
+      3: 'Intuitive communication, sensitive siblings, poetic or confused thinking.',
+      4: 'Idealized family, compassionate home life, potential family illusions.',
+      5: 'Romantic idealism, creative inspiration, compassionate with children.',
+      6: 'Service through compassion, potential work confusion, healing-oriented service.',
+      7: 'Idealized partnerships, compassionate relationships, potential relationship illusions.',
+      8: 'Spiritual transformation, intuitive shared resources, mystical psychology.',
+      9: 'Spiritual beliefs, idealistic higher learning, mystical or confused philosophy.',
+      10: 'Compassionate career, idealized reputation, potential career confusion.',
+      11: 'Idealistic friendships, compassionate group involvement, spiritual social goals.',
+      12: 'Strong spiritual connection, mystical experiences, compassionate service.'
+    },
+    'Pluto': {
+      1: 'Intense identity, transformative presence, powerful personality, potential control issues.',
+      2: 'Intense relationship with resources, transformative earning, power through possessions.',
+      3: 'Deep thinking, intense siblings, transformative communication methods.',
+      4: 'Powerful family dynamics, transformative home life, deep family secrets.',
+      5: 'Intense creativity, transformative romance, powerful influence on children.',
+      6: 'Transformative work, intense service orientation, healing through crisis.',
+      7: 'Intense partnerships, transformative relationships, power dynamics in marriage.',
+      8: 'Natural transformation abilities, intense shared resources, psychological power.',
+      9: 'Transformative beliefs, intense higher learning, powerful philosophical convictions.',
+      10: 'Powerful career influence, transformative public role, intense reputation.',
+      11: 'Transformative friendships, powerful group influence, revolutionary social goals.',
+      12: 'Deep spiritual transformation, hidden power, psychological healing abilities.'
+    },
+    'North Node': {
+      1: 'Soul growth through developing independent identity, leadership lessons, self-reliance.',
+      2: 'Soul growth through developing personal values, resource management, self-worth lessons.',
+      3: 'Soul growth through communication skills, local connections, sibling relationships.',
+      4: 'Soul growth through family responsibilities, home building, emotional foundation.',
+      5: 'Soul growth through creative expression, child relationships, heart-centered living.',
+      6: 'Soul growth through service, daily routines, health consciousness, humble work.',
+      7: 'Soul growth through partnerships, cooperation, relationship balance, considering others.',
+      8: 'Soul growth through transformation, shared resources, psychological depth, crisis wisdom.',
+      9: 'Soul growth through higher learning, travel, teaching, philosophical expansion.',
+      10: 'Soul growth through career achievement, public responsibility, authority development.',
+      11: 'Soul growth through group participation, friendship, humanitarian goals, social consciousness.',
+      12: 'Soul growth through spiritual service, compassion, releasing ego, mystical understanding.'
     }
   };
   
@@ -552,6 +632,83 @@ const aspectInterpretations: Record<string, Record<string, string>> = {
     'Trine': 'Natural ability to transform through innovation. Easy integration of change and progress.',
     'Square': 'Dynamic tension drives societal change. Part of generational challenges and breakthroughs.',
     'Sextile': 'Opportunities for evolutionary change. Good at combining innovation with transformation.'
+  },
+  'Sun-Jupiter': {
+    'Conjunction': 'Expansive identity and natural optimism. Generous spirit but may overextend or be overconfident.',
+    'Opposition': 'Tension between ego and higher wisdom. Must balance personal goals with broader perspective.',
+    'Trine': 'Natural confidence and good fortune. Easy success through optimistic leadership.',
+    'Square': 'Overconfidence drives growth through challenges. Learns wisdom through excessive risks.',
+    'Sextile': 'Opportunities for growth through confident expression. Good at inspiring others.'
+  },
+  'Sun-Saturn': {
+    'Conjunction': 'Serious identity with strong discipline. Natural authority but may be overly critical of self.',
+    'Opposition': 'Tension between self-expression and limitations. Must balance creativity with responsibility.',
+    'Trine': 'Natural ability to build lasting achievements. Disciplined success and mature leadership.',
+    'Square': 'Growth through overcoming restrictions. Develops strength through facing obstacles.',
+    'Sextile': 'Opportunities for structured success. Good at building solid foundations for goals.'
+  },
+  'Sun-Uranus': {
+    'Conjunction': 'Unique identity and rebellious spirit. Original self-expression but may be unpredictable.',
+    'Opposition': 'Tension between ego and innovation. Must balance personal expression with group needs.',
+    'Trine': 'Natural originality and leadership in change. Easy expression of unique qualities.',
+    'Square': 'Revolutionary spirit drives growth through disruption. Learns leadership through rebellion.',
+    'Sextile': 'Opportunities for innovative self-expression. Good at leading progressive changes.'
+  },
+  'Sun-Neptune': {
+    'Conjunction': 'Spiritual identity with compassionate nature. Creative inspiration but potential self-deception.',
+    'Opposition': 'Tension between ego and spirituality. Must balance personal goals with universal service.',
+    'Trine': 'Natural spiritual leadership and artistic ability. Easy expression of compassion and creativity.',
+    'Square': 'Spiritual confusion drives growth toward clarity. Learns authenticity through illusion.',
+    'Sextile': 'Opportunities for inspired leadership. Good at expressing vision through creative means.'
+  },
+  'Sun-Pluto': {
+    'Conjunction': 'Intense identity with transformative power. Natural leadership through crisis but may be controlling.',
+    'Opposition': 'Tension between ego and transformation. Must balance personal power with regeneration.',
+    'Trine': 'Natural ability to lead through change. Easy expression of personal power and transformation.',
+    'Square': 'Power struggles drive growth through transformation. Learns authentic leadership through crisis.',
+    'Sextile': 'Opportunities for transformative leadership. Good at empowering others through change.'
+  },
+  'Moon-Mars': {
+    'Conjunction': 'Emotional intensity and protective instincts. Quick emotional reactions, passionate nurturing.',
+    'Opposition': 'Tension between feelings and action. Must balance emotional needs with assertive expression.',
+    'Trine': 'Natural emotional courage and protective strength. Easy expression of passionate caring.',
+    'Square': 'Emotional frustration drives growth through action. Learns patience through reactive patterns.',
+    'Sextile': 'Opportunities for emotional assertiveness. Good at protective action and passionate expression.'
+  },
+  'Moon-Jupiter': {
+    'Conjunction': 'Emotional optimism and generous nurturing. Expansive feelings but may be overly indulgent.',
+    'Opposition': 'Tension between emotional needs and philosophical beliefs. Must balance caring with wisdom.',
+    'Trine': 'Natural emotional wisdom and generous caring. Easy expression of optimistic nurturing.',
+    'Square': 'Emotional excess drives growth through wisdom. Learns boundaries through overgiving.',
+    'Sextile': 'Opportunities for wise nurturing. Good at emotional teaching and generous support.'
+  },
+  'Moon-Saturn': {
+    'Conjunction': 'Serious emotional nature with mature nurturing. Responsible feelings but may suppress emotions.',
+    'Opposition': 'Tension between emotional needs and discipline. Must balance feeling with structure.',
+    'Trine': 'Natural emotional maturity and steady nurturing. Easy expression of responsible caring.',
+    'Square': 'Emotional restrictions drive growth through patience. Learns security through facing fears.',
+    'Sextile': 'Opportunities for structured emotional support. Good at providing stable, mature guidance.'
+  },
+  'Venus-Mars': {
+    'Conjunction': 'Passionate love nature with attractive magnetism. Strong desires but may be impulsive in love.',
+    'Opposition': 'Tension between love and desire. Must balance harmony with passion in relationships.',
+    'Trine': 'Natural charm and passionate attraction. Easy expression of love and desire in harmony.',
+    'Square': 'Relationship tensions drive growth through balance. Learns cooperation through romantic challenges.',
+    'Sextile': 'Opportunities for balanced relationships. Good at combining love with healthy assertion.'
+  },
+  'Venus-Jupiter': {
+    'Conjunction': 'Generous love nature with artistic expansion. Beautiful abundance but may be excessive in pleasure.',
+    'Opposition': 'Tension between personal love and universal compassion. Must balance intimacy with broader service.',
+    'Trine': 'Natural artistic gifts and generous love. Easy expression of beauty and expanded affection.',
+    'Square': 'Excessive desires drive growth through moderation. Learns balance through indulgence.',
+    'Sextile': 'Opportunities for beautiful expansion. Good at creating abundance through loving relationships.'
+  },
+  'Mars-Jupiter': {
+    'Conjunction': 'Enthusiastic action with expansive energy. Bold adventures but may be overconfident or wasteful.',
+    'Opposition': 'Tension between action and philosophy. Must balance doing with understanding broader meaning.',
+    'Trine': 'Natural leadership and confident action. Easy expression of enthusiastic achievement.',
+    'Square': 'Overextension drives growth through realistic planning. Learns wisdom through excessive action.',
+    'Sextile': 'Opportunities for wise action. Good at taking confident steps toward meaningful goals.'
   }
 };
 
@@ -584,4 +741,432 @@ function getPatternDescription(pattern: string): string {
     'balanced': 'you have a good mix of natural talents and growth challenges, creating a balanced but complex personality'
   };
   return descriptions[pattern] || 'you have a unique blend of energies';
+}
+
+function generateElementBalanceExplanation(reading: AstrologyReading): string {
+  // Extract element data from chartDescription
+  const chartData = reading.chartDescription || '';
+  const elementMatch = chartData.match(/\[ELEMENT DISTRIBUTION\]\n(.+)/);
+  
+  if (!elementMatch) {
+    return 'Element distribution data not available for detailed analysis.';
+  }
+
+  const elementData = elementMatch[1];
+  const elements = parseElementData(elementData);
+  
+  const { dominant, lacking, balanced } = analyzeElementBalance(elements);
+  
+  return `${formatElementCounts(elements)}
+
+**Dominant Element: ${dominant.name.toUpperCase()}**
+${getElementDominantDescription(dominant.name, dominant.count)} ${getElementManifestation(dominant.name)}
+
+**Balancing Need: ${lacking.name.toUpperCase()}**
+${getElementLackingDescription(lacking.name, lacking.count)} ${getElementCompensation(lacking.name)}
+
+**Element Integration**
+${generateElementIntegrationAdvice(elements)}
+
+**How This Shapes You**
+${getOverallElementalPersonality(dominant.name, lacking.name)}`;
+}
+
+function generateModalBalanceExplanation(reading: AstrologyReading): string {
+  // Extract modality data from chartDescription  
+  const chartData = reading.chartDescription || '';
+  const modalityMatch = chartData.match(/\[MODALITY DISTRIBUTION\]\n(.+)/);
+  
+  if (!modalityMatch) {
+    return 'Modality distribution data not available for detailed analysis.';
+  }
+
+  const modalityData = modalityMatch[1];
+  const modalities = parseModalityData(modalityData);
+  
+  const { dominant, lacking, balanced } = analyzeModalityBalance(modalities);
+  
+  return `${formatModalityCounts(modalities)}
+
+**Primary Mode: ${dominant.name.toUpperCase()}**
+${getModalityDominantDescription(dominant.name, dominant.count)} ${getModalityManifestation(dominant.name)}
+
+**Growth Area: ${lacking.name.toUpperCase()}**
+${getModalityLackingDescription(lacking.name, lacking.count)} ${getModalityDevelopment(lacking.name)}
+
+**Modal Integration**
+${generateModalityIntegrationAdvice(modalities)}
+
+**Life Approach Pattern**
+${getOverallModalityPersonality(dominant.name, lacking.name)}`;
+}
+
+function generateDispositorChartExplanation(reading: AstrologyReading): string {
+  // Extract dispositor data from chartDescription
+  const chartData = reading.chartDescription || '';
+  const dispositorMatch = chartData.match(/\[DISPOSITOR TREE\]\n((?:.|\n)*?)(?=\[|$)/);
+  
+  if (!dispositorMatch) {
+    return 'Dispositor tree data not available for detailed analysis.';
+  }
+
+  const dispositorData = dispositorMatch[1].trim();
+  
+  // Simple analysis based on the raw data
+  const hasCycles = dispositorData.includes('(cycle)');
+  const hasFinals = dispositorData.includes('(final)');
+  
+  return `${dispositorData}
+
+**Power Structure Analysis**
+${hasCycles && hasFinals ? 
+  'Mixed authority structure with both final dispositors and mutual reception cycles. Some planets flow to ultimate authorities while others support each other in cooperative cycles.' :
+  hasCycles ? 
+  'Mutual reception dominant structure. Most planetary energies support each other in cooperative cycles rather than flowing to single authorities.' :
+  hasFinals ?
+  'Hierarchical structure with clear final dispositors. Planetary energies flow to ultimate governing planets that organize your psychological functions.' :
+  'Complex distributed authority with no clear final dispositors or major cycles.'}
+
+**Integration Strategy**
+${hasCycles ? 
+  'Focus on developing the cooperative relationships between planets in cycles. These mutual support systems are your greatest strength - cultivate the balance between these planetary functions.' :
+  'Work on strengthening your final dispositor planets as they organize all other energies. These governing planets are key to your psychological integration and life effectiveness.'}`; 
+}
+
+// Helper functions for element analysis
+function parseElementData(elementData: string): Record<string, number> {
+  const elements: Record<string, number> = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
+  
+  elementData.split('|').forEach(part => {
+    const match = part.trim().match(/(\w+):\s*(\d+)/);
+    if (match) {
+      elements[match[1]] = parseInt(match[2]);
+    }
+  });
+  
+  return elements;
+}
+
+function analyzeElementBalance(elements: Record<string, number>) {
+  const sorted = Object.entries(elements).sort((a, b) => b[1] - a[1]);
+  return {
+    dominant: { name: sorted[0][0], count: sorted[0][1] },
+    lacking: { name: sorted[3][0], count: sorted[3][1] },
+    balanced: sorted[1][1] === sorted[2][1]
+  };
+}
+
+function formatElementCounts(elements: Record<string, number>): string {
+  return Object.entries(elements)
+    .map(([element, count]) => `${element}: ${count} planets`)
+    .join(' | ');
+}
+
+function getElementDominantDescription(element: string, count: number): string {
+  const descriptions: Record<string, string> = {
+    Fire: `With ${count} planets in Fire signs, you operate with high energy, enthusiasm, and direct action.`,
+    Earth: `With ${count} planets in Earth signs, you prioritize practical results, stability, and tangible achievements.`,
+    Air: `With ${count} planets in Air signs, you process life through ideas, communication, and mental connections.`,
+    Water: `With ${count} planets in Water signs, you navigate through emotions, intuition, and psychic sensitivity.`
+  };
+  return descriptions[element] || `Strong ${element} emphasis shapes your core nature.`;
+}
+
+function getElementManifestation(element: string): string {
+  const manifestations: Record<string, string> = {
+    Fire: 'You start projects easily, inspire others, and prefer quick results over lengthy planning.',
+    Earth: 'You build lasting foundations, value security, and prefer proven methods over untested ideas.',
+    Air: 'You need mental stimulation, communicate naturally, and prefer understanding before committing.',
+    Water: 'You trust your feelings, respond to emotional undercurrents, and prefer harmony over conflict.'
+  };
+  return manifestations[element] || '';
+}
+
+function getElementLackingDescription(element: string, count: number): string {
+  const descriptions: Record<string, string> = {
+    Fire: `With only ${count} planets in Fire, you may struggle with initiative, confidence, or sustained enthusiasm.`,
+    Earth: `With only ${count} planets in Earth, you may lack practical follow-through or struggle with material security.`,
+    Air: `With only ${count} planets in Air, you may have difficulty with objective thinking or clear communication.`,
+    Water: `With only ${count} planets in Water, you may disconnect from emotions or lack intuitive sensitivity.`
+  };
+  return descriptions[element] || `Limited ${element} energy requires conscious development.`;
+}
+
+function getElementCompensation(element: string): string {
+  const compensations: Record<string, string> = {
+    Fire: 'Develop confidence through small wins, exercise regularly, and practice decisive action.',
+    Earth: 'Create structured routines, focus on practical skills, and build material stability step-by-step.',
+    Air: 'Practice active listening, study diverse subjects, and engage in regular intellectual exchange.',
+    Water: 'Develop emotional vocabulary, practice meditation, and honor your intuitive responses.'
+  };
+  return compensations[element] || '';
+}
+
+function generateElementIntegrationAdvice(elements: Record<string, number>): string {
+  const total = Object.values(elements).reduce((sum, count) => sum + count, 0);
+  const balanced = Object.values(elements).every(count => Math.abs(count - total/4) <= 1);
+  
+  if (balanced) {
+    return 'Your elements are well-balanced, giving you access to all four modes of processing life experiences.';
+  }
+  
+  const sorted = Object.entries(elements).sort((a, b) => b[1] - a[1]);
+  return `Focus on developing your ${sorted[3][0]} qualities to balance your strong ${sorted[0][0]} nature.`;
+}
+
+function getOverallElementalPersonality(dominant: string, lacking: string): string {
+  const combinations: Record<string, Record<string, string>> = {
+    Fire: {
+      Earth: 'Your fiery enthusiasm needs grounding in practical reality and patient follow-through.',
+      Air: 'Your direct action style needs balance with thoughtful planning and communication.',
+      Water: 'Your confident energy needs softening with emotional sensitivity and intuitive awareness.'
+    },
+    Earth: {
+      Fire: 'Your practical nature needs energizing with spontaneous action and confident initiative.',
+      Air: 'Your grounded approach needs expanding with intellectual curiosity and social connection.',
+      Water: 'Your material focus needs deepening with emotional awareness and intuitive trust.'
+    },
+    Air: {
+      Fire: 'Your mental approach needs energizing with direct action and confident decision-making.',
+      Earth: 'Your theoretical nature needs grounding in practical application and concrete results.',
+      Water: 'Your logical mind needs balancing with emotional intelligence and intuitive wisdom.'
+    },
+    Water: {
+      Fire: 'Your emotional depth needs energizing with confident action and enthusiastic expression.',
+      Earth: 'Your intuitive nature needs grounding in practical skills and material security.',
+      Air: 'Your feeling-based decisions need balancing with objective analysis and clear communication.'
+    }
+  };
+  
+  return combinations[dominant]?.[lacking] || 'Your elemental mix creates a unique approach to life experiences.';
+}
+
+// Helper functions for modality analysis
+function parseModalityData(modalityData: string): Record<string, number> {
+  const modalities: Record<string, number> = { Cardinal: 0, Fixed: 0, Mutable: 0 };
+  
+  modalityData.split('|').forEach(part => {
+    const match = part.trim().match(/(\w+):\s*(\d+)/);
+    if (match) {
+      modalities[match[1]] = parseInt(match[2]);
+    }
+  });
+  
+  return modalities;
+}
+
+function analyzeModalityBalance(modalities: Record<string, number>) {
+  const sorted = Object.entries(modalities).sort((a, b) => b[1] - a[1]);
+  return {
+    dominant: { name: sorted[0][0], count: sorted[0][1] },
+    lacking: { name: sorted[2][0], count: sorted[2][1] },
+    balanced: sorted[0][1] === sorted[1][1]
+  };
+}
+
+function formatModalityCounts(modalities: Record<string, number>): string {
+  return Object.entries(modalities)
+    .map(([modality, count]) => `${modality}: ${count} planets`)
+    .join(' | ');
+}
+
+function getModalityDominantDescription(modality: string, count: number): string {
+  const descriptions: Record<string, string> = {
+    Cardinal: `With ${count} planets in Cardinal signs, you initiate action, lead change, and start new phases naturally.`,
+    Fixed: `With ${count} planets in Fixed signs, you sustain effort, resist change, and build lasting stability.`,
+    Mutable: `With ${count} planets in Mutable signs, you adapt easily, process information, and facilitate transitions.`
+  };
+  return descriptions[modality] || `Strong ${modality} emphasis shapes your action style.`;
+}
+
+function getModalityManifestation(modality: string): string {
+  const manifestations: Record<string, string> = {
+    Cardinal: 'You prefer to be in charge, dislike stagnation, and energize situations through decisive action.',
+    Fixed: 'You prefer consistency, resist pressure to change, and provide stability through determined persistence.',
+    Mutable: 'You prefer flexibility, dislike rigid structure, and contribute through adaptive problem-solving.'
+  };
+  return manifestations[modality] || '';
+}
+
+function getModalityLackingDescription(modality: string, count: number): string {
+  const descriptions: Record<string, string> = {
+    Cardinal: `With only ${count} planets in Cardinal signs, you may struggle with initiative, leadership, or starting projects.`,
+    Fixed: `With only ${count} planets in Fixed signs, you may lack persistence, stability, or commitment to see things through.`,
+    Mutable: `With only ${count} planets in Mutable signs, you may have difficulty adapting, processing change, or being flexible.`
+  };
+  return descriptions[modality] || `Limited ${modality} energy requires conscious development.`;
+}
+
+function getModalityDevelopment(modality: string): string {
+  const developments: Record<string, string> = {
+    Cardinal: 'Practice taking initiative in small ways, set clear goals, and push yourself to begin new projects.',
+    Fixed: 'Build consistent routines, practice patience with long-term goals, and develop staying power through persistence.',
+    Mutable: 'Practice flexibility in daily situations, study different perspectives, and develop comfort with uncertainty.'
+  };
+  return developments[modality] || '';
+}
+
+function generateModalityIntegrationAdvice(modalities: Record<string, number>): string {
+  const total = Object.values(modalities).reduce((sum, count) => sum + count, 0);
+  const sorted = Object.entries(modalities).sort((a, b) => b[1] - a[1]);
+  
+  if (sorted[0][1] > total * 0.6) {
+    return `Your strong ${sorted[0][0]} nature needs balancing with ${sorted[2][0]} flexibility and ${sorted[1][0]} qualities.`;
+  }
+  
+  return 'Your modalities are relatively balanced, giving you access to different action styles as needed.';
+}
+
+function getOverallModalityPersonality(dominant: string, lacking: string): string {
+  const combinations: Record<string, Record<string, string>> = {
+    Cardinal: {
+      Fixed: 'Your leadership initiative needs balancing with sustained follow-through and patient persistence.',
+      Mutable: 'Your decisive action needs tempering with adaptive flexibility and information processing.'
+    },
+    Fixed: {
+      Cardinal: 'Your steady persistence needs energizing with initiative, leadership, and willingness to start new things.',
+      Mutable: 'Your determined focus needs balancing with adaptability, flexibility, and openness to change.'
+    },
+    Mutable: {
+      Cardinal: 'Your adaptive flexibility needs strengthening with decisive leadership and confident initiative.',
+      Fixed: 'Your changeable nature needs grounding with sustained commitment and persistent effort.'
+    }
+  };
+  
+  return combinations[dominant]?.[lacking] || 'Your modal mix creates a unique approach to taking action in life.';
+}
+
+// Helper functions for dispositor analysis
+function parseDispositorChains(dispositorData: string): Array<{planet: string, chain: string[]}> {
+  const chains: Array<{planet: string, chain: string[]}> = [];
+  
+  dispositorData.split('\n').forEach(line => {
+    const parts = line.split('→').map(part => part.trim());
+    if (parts.length > 1) {
+      const planet = parts[0];
+      const chain = parts.slice(1).map(p => p.replace(/\(.*?\)/g, '').trim());
+      chains.push({ planet, chain });
+    }
+  });
+  
+  return chains;
+}
+
+function analyzeDispositorStructure(chains: Array<{planet: string, chain: string[]}>) {
+  const finalDispositors = new Set<string>();
+  const cycles: Set<string> = new Set(); // Use Set to avoid duplicates
+  const chainLengths: Record<string, number> = {};
+  
+  chains.forEach(({ planet, chain }) => {
+    chainLengths[planet] = chain.length;
+    
+    // Check for final dispositor - look for "(final)" marker
+    if (chain.some(step => step.includes('final'))) {
+      finalDispositors.add(planet);
+    }
+    
+    // Check for cycles - look for "(cycle)" marker
+    if (chain.some(step => step.includes('cycle'))) {
+      // Extract unique cycle participants from the chain
+      const cycleElements = chain.filter(step => !step.includes('(') && step.trim() !== '');
+      if (cycleElements.length > 0) {
+        // Create a sorted cycle signature to avoid duplicates
+        const uniqueCyclePlanets = [...new Set([planet, ...cycleElements])].sort();
+        cycles.add(uniqueCyclePlanets.join('-'));
+      }
+    }
+  });
+  
+  // Convert cycle set back to arrays for display
+  const cycleArrays = Array.from(cycles).map(cycle => cycle.split('-'));
+  
+  const pattern = finalDispositors.size === 1 ? 'autocratic' :
+                  finalDispositors.size === 2 ? 'dual-authority' :
+                  cycles.size > 0 ? 'mutual-reception' : 'distributed';
+  
+  return {
+    finalDispositors: Array.from(finalDispositors),
+    cycles: cycleArrays,
+    chainLengths,
+    pattern
+  };
+}
+
+function formatDispositorChains(chains: Array<{planet: string, chain: string[]}>): string {
+  return chains.slice(0, 8).map(({ planet, chain }) => 
+    `${planet} → ${chain.join(' → ')}`
+  ).join('\n');
+}
+
+function getFinalDispositorDescription(planet: string): string {
+  const descriptions: Record<string, string> = {
+    Sun: 'Your core identity and creative self-expression holds ultimate authority over all other planetary energies.',
+    Moon: 'Your emotional needs and intuitive responses govern all other planetary functions and decisions.',
+    Mercury: 'Your communication and thinking patterns control how all other planetary energies are expressed.',
+    Venus: 'Your values and relationship needs determine how all other planetary energies manifest.',
+    Mars: 'Your desire nature and assertive will drives all other planetary expressions and choices.',
+    Jupiter: 'Your growth orientation and philosophical beliefs guide all other planetary developments.',
+    Saturn: 'Your discipline and structural needs organize and limit all other planetary expressions.'
+  };
+  return descriptions[planet] || `${planet} serves as the ultimate organizing principle for your planetary energies.`;
+}
+
+function getMutualReceptionDescription(cycle: string[]): string {
+  if (cycle.length === 2) {
+    return `${cycle[0]} and ${cycle[1]} support each other equally, creating a balanced power-sharing arrangement that strengthens both energies.`;
+  } else if (cycle.length === 3) {
+    return `${cycle[0]}, ${cycle[1]}, and ${cycle[2]} form a three-way cooperative cycle, each planet supporting the next in a flowing triangle of mutual empowerment.`;
+  }
+  return `${cycle.join(', ')} form a complex cooperative power cycle, each supporting the others in a circular flow of mutual empowerment.`;
+}
+
+function getChainLengthAnalysis(chainLengths: Record<string, number>): string {
+  const avgLength = Object.values(chainLengths).reduce((sum, len) => sum + len, 0) / Object.keys(chainLengths).length;
+  
+  if (avgLength < 2) {
+    return 'Short chains indicate direct access to personal power with minimal intermediate steps.';
+  } else if (avgLength > 3) {
+    return 'Long chains suggest complex power structures requiring multiple steps to access core authority.';
+  }
+  return 'Moderate chains indicate balanced power access with some intermediate organizational steps.';
+}
+
+function getDispositorPatternDescription(pattern: string): string {
+  const descriptions: Record<string, string> = {
+    'autocratic': 'Single final dispositor creates unified but potentially rigid personality organization.',
+    'dual-authority': 'Two final dispositors create dynamic tension requiring conscious integration of different authority centers.',
+    'mutual-reception': 'Mutual reception cycles create cooperative power-sharing with strong internal support systems.',
+    'distributed': 'Multiple authority centers create complex but flexible personality organization.'
+  };
+  return descriptions[pattern] || 'Unique power structure creates distinctive personality organization.';
+}
+
+function getDispositorPersonalityImplications(pattern: string, finalDispositors: string[]): string {
+  if (pattern === 'autocratic' && finalDispositors.length === 1) {
+    const planet = finalDispositors[0];
+    const implications: Record<string, string> = {
+      Sun: 'All decisions ultimately serve your creative self-expression and personal identity development.',
+      Moon: 'All choices ultimately serve your emotional security and intuitive wisdom.',
+      Saturn: 'All actions ultimately serve your need for structure, achievement, and lasting accomplishment.'
+    };
+    return implications[planet] || `All planetary energies ultimately serve your ${planet.toLowerCase()} function.`;
+  }
+  
+  if (pattern === 'dual-authority') {
+    return `You must consciously integrate ${finalDispositors.join(' and ')} energies to achieve internal harmony and effective action.`;
+  }
+  
+  return 'Your complex power structure requires conscious coordination but offers exceptional versatility and adaptability.';
+}
+
+function getDispositorIntegrationAdvice(finalDispositors: string[], cycles: string[][]): string {
+  if (finalDispositors.length === 1) {
+    return `Focus on developing your ${finalDispositors[0].toLowerCase()} function as it organizes all other planetary energies. Strengthen this area for maximum life effectiveness.`;
+  }
+  
+  if (cycles.length > 0) {
+    return `Cultivate the mutual support between your ${cycles[0].join(' and ')} functions. These cooperative relationships are your greatest strength.`;
+  }
+  
+  return `Work on conscious coordination between your multiple authority centers: ${finalDispositors.join(', ')}. Integration of these different power sources is key to your success.`;
 }
