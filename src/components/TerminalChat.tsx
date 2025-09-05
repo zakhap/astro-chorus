@@ -87,7 +87,7 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
       
       // Add explanation messages to chat
       if (explanations) {
-        const explanationMessages: ChatMessage[] = explanations.map((explanation: any, index: number) => ({
+        const explanationMessages: ChatMessage[] = explanations.map((explanation: { title: string; content: string }, index: number) => ({
           id: `explanation-${index}`,
           character: 'astrologer' as const,
           content: `**${explanation.title}**\n\n${explanation.content}`,

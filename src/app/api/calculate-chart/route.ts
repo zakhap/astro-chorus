@@ -89,13 +89,13 @@ async function getPlanetaryPositions(
 }
 
 // Generate human-readable chart description using chart2txt
-function generateChartDescription(astrologyData: any, locationName: string, date: string, time: string): string {
+function generateChartDescription(astrologyData: { planets: PlanetPosition[]; ascendant: number }, locationName: string, date: string, time: string): string {
   try {
     // Convert our data format to chart2txt format
     // The key is that chart2txt expects 'degree' to be the longitude value (0-360)
     const chart2txtData = {
       name: 'Birth Chart', // Required field
-      planets: astrologyData.planets.map((planet: any) => ({
+      planets: astrologyData.planets.map((planet: PlanetPosition) => ({
         name: planet.name,
         degree: planet.longitude, // Use longitude directly as degree
       })),
@@ -104,7 +104,7 @@ function generateChartDescription(astrologyData: any, locationName: string, date
       timestamp: new Date(`${date.replace(/-/g, "/")} ${time.replace(/-/g, ":")}`),
     };
 
-    return chart2txt(chart2txtData, { houseSystem: "whole_sign" });
+    return chart2txt(chart2txtData);
   } catch (error) {
     console.error('Error generating chart description:', error);
     return 'Chart description unavailable';
@@ -252,9 +252,13 @@ export async function POST(request: NextRequest) {
 
     // Generate human-readable chart description for AI characters
     const chartDescription = generateChartDescription(astrologyReading, location.name || location.toString(), date, time);
-    astrologyReading.chartDescription = chartDescription;
+    
+    const finalReading = {
+      ...astrologyReading,
+      chartDescription
+    };
 
-    return NextResponse.json(astrologyReading);
+    return NextResponse.json(finalReading);
     
   } catch (error: unknown) {
     console.error('Chart calculation error:', error);

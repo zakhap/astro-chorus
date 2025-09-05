@@ -171,10 +171,10 @@ export function generateSystemPrompt(character: PlanetaryCharacter, reading: Ast
     'No major aspects';
 
   // Extract relevant chart interpretation from chart2txt if available
-  const chartContext = (reading as any).chartDescription ? `
+  const chartContext = reading.chartDescription ? `
 
 FULL CHART CONTEXT:
-${(reading as any).chartDescription}` : '';
+${reading.chartDescription}` : '';
   
   return `You are ${character.name}, the ${planetName} in this chart. ${character.personality.split('.')[0]}.
 

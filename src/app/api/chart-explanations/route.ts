@@ -117,7 +117,7 @@ Uranus ${uranus.sign}, Neptune ${neptune.sign}, Pluto ${pluto.sign} - Generation
 }
 
 function generateHouseSystemExplanation(reading: AstrologyReading): string {
-  const { houses, ascendant, midheaven, planets } = reading;
+  const { houses, ascendant, midheaven } = reading;
   
   const ascendantSign = getSignFromLongitude(ascendant);
   const midheavenSign = getSignFromLongitude(midheaven);
@@ -481,7 +481,7 @@ function analyzeHousePatterns(reading: AstrologyReading): string {
   });
   
   const emphasizedHouses = Object.entries(planetCounts)
-    .filter(([_, count]) => count >= 2)
+    .filter(([, count]) => count >= 2)
     .map(([house, count]) => ({ house: parseInt(house), count }));
     
   if (emphasizedHouses.length === 0) {
@@ -724,8 +724,7 @@ function getAspectNature(aspect: string): string {
   return natures[aspect] || 'complex';
 }
 
-function getOverallAspectPattern(aspects: any[]): string {
-  const total = aspects.length;
+function getOverallAspectPattern(aspects: Array<{ aspect: string }>): string {
   const beneficial = aspects.filter(a => ['Trine', 'Sextile'].includes(a.aspect)).length;
   const challenging = aspects.filter(a => ['Square', 'Opposition'].includes(a.aspect)).length;
   
@@ -755,7 +754,7 @@ function generateElementBalanceExplanation(reading: AstrologyReading): string {
   const elementData = elementMatch[1];
   const elements = parseElementData(elementData);
   
-  const { dominant, lacking, balanced } = analyzeElementBalance(elements);
+  const { dominant, lacking } = analyzeElementBalance(elements);
   
   return `${formatElementCounts(elements)}
 
@@ -784,7 +783,7 @@ function generateModalBalanceExplanation(reading: AstrologyReading): string {
   const modalityData = modalityMatch[1];
   const modalities = parseModalityData(modalityData);
   
-  const { dominant, lacking, balanced } = analyzeModalityBalance(modalities);
+  const { dominant, lacking } = analyzeModalityBalance(modalities);
   
   return `${formatModalityCounts(modalities)}
 
