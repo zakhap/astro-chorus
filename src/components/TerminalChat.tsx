@@ -484,7 +484,7 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
                       <div className="border border-black/30 p-2">
                         <div className="text-black/60 mb-2 text-xs font-bold">DISPOSITOR CHAINS</div>
                         <div className="text-[9px] space-y-0.5 text-black/80">
-                          {chart2txtData.dispositors.split('\n').slice(0, 6).map((line, index) => (
+                          {chart2txtData.dispositors.split('\n').map((line, index) => (
                             <div key={index} className="font-mono">
                               {line.replace('→', '→').replace('(final)', '[FINAL]').replace(/\(cycle\)/, '[CYCLE]')}
                             </div>
