@@ -34,30 +34,9 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
     scrollToBottom();
   }, [messages]);
 
-  // Initial greeting
+  // Start with empty messages
   useEffect(() => {
-    const initialMessages: ChatMessage[] = [
-      {
-        id: '1',
-        character: 'sun',
-        content: `SOL_${reading.sun.sign.toUpperCase()}: Greetings, seeker. Your solar essence radiates from ${reading.sun.sign} at ${reading.sun.degree}°.`,
-        timestamp: new Date()
-      },
-      {
-        id: '2',
-        character: 'moon',
-        content: `LUNA_${reading.moon.sign.toUpperCase()}: Your emotional tides flow through ${reading.moon.sign} at ${reading.moon.degree}°. I sense your depths.`,
-        timestamp: new Date()
-      },
-      {
-        id: '3',
-        character: 'mercury',
-        content: `HERMES_${reading.mercury.sign.toUpperCase()}: Mind circuits active. Mercury${reading.mercury.retrograde ? ' [RETROGRADE]' : ''} transmitting from ${reading.mercury.sign} at ${reading.mercury.degree}°.`,
-        timestamp: new Date()
-      }
-    ];
-    
-    setMessages(initialMessages);
+    setMessages([]);
   }, [reading]);
 
   const handleSendMessage = async () => {
@@ -70,33 +49,47 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
       timestamp: new Date()
     };
 
+    const currentInput = inputValue; // Capture input before clearing
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setLoading(true);
 
+    const planetKeys = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'northNode'] as const;
+    
     try {
-      const planetKeys = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'northNode'] as const;
-      
-      const planetResponses = await Promise.all(
-        planetKeys.map(planet => generatePlanetResponse(planet, inputValue))
-      );
-
-      planetResponses.forEach((response, index) => {
-        setTimeout(() => {
-          setMessages(prev => [...prev, response]);
-        }, index * 200); // Much faster: 200ms between messages
+      // Handle each planet individually to avoid Promise.all failure
+      const planetPromises = planetKeys.map(async (planet, index) => {
+        try {
+          const response = await generatePlanetResponse(planet, currentInput);
+          setTimeout(() => {
+            setMessages(prev => [...prev, response]);
+          }, index * 200);
+          return response;
+        } catch (error) {
+          console.error(`Error with ${planet}:`, error);
+          // Return error message for this planet
+          const errorResponse = {
+            id: `${planet}-error-${Date.now()}`,
+            character: planet,
+            content: `${planet.toUpperCase()}_ERROR: Connection failed`,
+            timestamp: new Date()
+          };
+          setTimeout(() => {
+            setMessages(prev => [...prev, errorResponse]);
+          }, index * 200);
+          return errorResponse;
+        }
       });
 
+      await Promise.allSettled(planetPromises);
+
     } catch (error) {
-      console.error('Error:', error);
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        character: 'sun',
-        content: 'SYSTEM_ERROR: Cosmic connection interrupted. Please retry.',
-        timestamp: new Date()
-      }]);
+      console.error('Critical error:', error);
     } finally {
-      setTimeout(() => setLoading(false), planetKeys.length * 200 + 500);
+      // Ensure loading is always cleared
+      setTimeout(() => {
+        setLoading(false);
+      }, Math.max(planetKeys.length * 200 + 500, 3000));
     }
   };
 
@@ -161,14 +154,28 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
             temporarily
           </div>
         </div>
+        {/* Credit */}
+        <div className="absolute bottom-4 right-4 text-xs text-black/40">
+          built by <a href="https://x.com/singsarg" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors">@singsarg</a>
+        </div>
       </div>
       
       <div className="flex flex-1 overflow-hidden">
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col bg-[rgb(222,212,198)] h-screen">
+          {/* Back Button - Fixed at Top Left */}
+          <div className="absolute top-4 left-4 z-10">
+            <button
+              onClick={onBack}
+              className="text-sm text-black/60 hover:text-black transition-colors"
+            >
+              ← Back
+            </button>
+          </div>
+          
           {/* Centered Container */}
           <div className="flex-1 flex items-center justify-center p-6 overflow-hidden">
-            <div className="w-[90%] max-w-5xl border-2 border-dashed border-black/40 p-12 bg-[rgb(222,212,198)]">
+            <div className="w-[90%] max-w-5xl border border-black/30 p-12 bg-[rgb(222,212,198)]">
               {/* Header */}
               <div className="mb-6 text-center">
                 <div className="text-xs text-black/60 mb-2">AstroChat - Your Astrological Reading</div>
@@ -278,27 +285,10 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
             </div>
           </div>
           
-          {/* Input Area - Fixed at Bottom */}
-          <div className="border-t-2 border-black/20 px-6 py-4 bg-[rgb(222,212,198)]">
-            <div className="text-xs text-black/60 mb-2">Ask the planets:</div>
-            <div className="flex items-center">
-              <span className="text-black mr-2">{'>'}</span>
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                className="flex-1 bg-transparent outline-none text-black text-xs border-b border-black/20 focus:border-black"
-                placeholder="Enter cosmic query..."
-                disabled={loading}
-              />
-              {loading && <span className="ml-2 text-black/50 animate-pulse">█</span>}
-            </div>
-          </div>
         </div>
 
         {/* Right Sidebar - Planetary Responses */}
-        <div className="w-96 bg-black/90 flex flex-col border-l-2 border-black/20 h-screen">
+        <div className="w-[28rem] bg-black/90 flex flex-col border-l-2 border-black/20 h-screen">
           <div className="flex-1 flex flex-col min-h-0">
             {/* Header - Fixed */}
             <div className="p-4 border-b border-green-400/30">
@@ -354,14 +344,26 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
             </div>
           </div>
 
-          {/* Exit button - Fixed at Bottom Right */}
+          {/* Input Area - Fixed at Bottom */}
           <div className="border-t border-green-400/30 p-4">
-            <button
-              onClick={onBack}
-              className="text-[10px] text-green-600 hover:text-green-400 transition-colors float-right"
-            >
-              ← Back
-            </button>
+            <div className="text-xs text-green-600 mb-2">Ask the planets:</div>
+            <div className="flex items-start">
+              <span className="text-green-400 mr-2 mt-1">{'>'}</span>
+              <textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
+                className="flex-1 bg-transparent outline-none text-green-300 text-xs border border-green-400/30 focus:border-green-400 p-2 rounded resize-none min-h-[2.5rem] max-h-24 overflow-y-auto"
+                placeholder="Enter cosmic query... (Shift+Enter for new line)"
+                disabled={loading}
+                rows={1}
+              />
+            </div>
+            {loading && (
+              <div className="mt-2 text-center">
+                <span className="text-green-600 animate-pulse text-xs">Processing...</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

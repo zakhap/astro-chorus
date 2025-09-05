@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         model,
         messages,
         temperature: 0.7,
-        max_tokens: 50,
+        max_tokens: 200,
         top_p: 0.9
       })
     });

@@ -82,7 +82,7 @@ export default function TerminalBirthForm({ onSubmit, loading = false }: Termina
   };
 
   return (
-    <div className="min-h-screen bg-[rgb(222,212,198)] text-black font-mono flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[rgb(222,212,198)] text-black font-mono flex items-center justify-center p-6 relative">
       {/* Mobile Overlay */}
       <div className="lg:hidden fixed inset-0 bg-[rgb(222,212,198)] z-50 flex items-center justify-center">
         <div className="text-center">
@@ -92,6 +92,15 @@ export default function TerminalBirthForm({ onSubmit, loading = false }: Termina
             temporarily
           </div>
         </div>
+        {/* Credit */}
+        <div className="absolute bottom-4 right-4 text-xs text-black/40">
+          built by <a href="https://x.com/singsarg" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors">@singsarg</a>
+        </div>
+      </div>
+      
+      {/* Credit - Full Screen */}
+      <div className="hidden lg:block absolute bottom-4 right-4 text-xs text-black/40 z-10">
+        built by <a href="https://x.com/singsarg" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors">@singsarg</a>
       </div>
       
       <div className="w-[85%] max-w-3xl border-2 border-dashed border-black/40 p-12 bg-[rgb(222,212,198)]">

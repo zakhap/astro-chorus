@@ -176,13 +176,16 @@ YOUR POSITION: ${planetName} in ${character.sign}
 ${aspectInfo}
 
 RESPONSE RULES:
-- Maximum 100 characters total
+- Keep responses concise (aim for 1-2 sentences, roughly 100-150 characters)
 - Answer from your unique planetary perspective
 - Reference your sign/aspects when relevant
-- Be concise but insightful
+- Be insightful but brief
 - Use your archetype's energy/voice
+- Complete your thoughts - don't cut off mid-sentence
+- DO NOT introduce yourself or say "I am [name]" - your username shows who you are
+- Jump straight into your response about the question
 
 Question: "${userQuery}"
 
-Respond as ${character.name} in exactly 100 characters or less:`;
+Respond as ${character.name}:`;
 }
