@@ -37,9 +37,9 @@ function getSimpleTimezoneOffset(cityName: string): number {
   return timezones[key] || 0;
 }
 
-// Calculate aspects between planets
-function calculateAspects(planets: any[]) {
-  const aspects: any[] = [];
+// Calculate aspects between planets  
+function calculateAspects(planets: Array<{name: string; longitude: number}>) {
+  const aspects: Array<{planet1: string; planet2: string; aspect: string; orb: number; exactDegrees: number}> = [];
   const aspectTypes = [
     { name: 'Conjunction', degrees: 0, orb: 8 },
     { name: 'Opposition', degrees: 180, orb: 8 },
@@ -205,10 +205,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(astrologyReading);
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Chart calculation error:', error);
     return NextResponse.json(
-      { error: `Failed to calculate astrology chart: ${error.message}` },
+      { error: `Failed to calculate astrology chart: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     );
   }

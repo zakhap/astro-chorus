@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { BirthInfo } from '@/types/astrology';
 
 interface TerminalBirthFormProps {
@@ -16,14 +16,7 @@ export default function TerminalBirthForm({ onSubmit, loading = false }: Termina
     latitude: 0,
     longitude: 0
   });
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  // Removed unused currentTime state
 
   const handleLocationChange = async (location: string) => {
     setFormData(prev => ({ ...prev, location }));

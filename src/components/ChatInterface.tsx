@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import type { ChatMessage, AstrologyReading, PlanetaryCharacter } from '@/types/astrology';
+import type { ChatMessage, AstrologyReading } from '@/types/astrology';
 import { createPlanetaryCharacters, generateSystemPrompt } from '@/data/characters';
 import { Send } from 'lucide-react';
 

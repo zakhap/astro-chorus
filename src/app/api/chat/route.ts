@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       response: data.choices[0].message.content 
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Chat API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

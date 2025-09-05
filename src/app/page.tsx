@@ -48,9 +48,9 @@ export default function Home() {
       localStorage.setItem('astroChartData', JSON.stringify(reading));
       setAstrologyReading(reading);
       setCurrentView('chat');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error calculating astrology chart:', error);
-      alert(`There was an error calculating your chart: ${error.message}`);
+      alert(`There was an error calculating your chart: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
