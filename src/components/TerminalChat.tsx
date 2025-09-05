@@ -15,6 +15,7 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [explanationsLoaded, setExplanationsLoaded] = useState(false);
   
   const characters = createPlanetaryCharacters(reading);
 
@@ -34,10 +35,73 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
     scrollToBottom();
   }, [messages]);
 
-  // Start with empty messages
+  // Load default explanations when chart loads
   useEffect(() => {
-    setMessages([]);
-  }, [reading]);
+    const loadDefaultExplanations = async () => {
+      if (explanationsLoaded) return;
+      
+      // Check localStorage for cached explanations
+      const cacheKey = `chart_explanations_${JSON.stringify(reading.birthInfo)}`;
+      const cached = localStorage.getItem(cacheKey);
+      
+      let explanations = null;
+      
+      if (cached) {
+        const parsedCache = JSON.parse(cached);
+        const cacheAge = Date.now() - new Date(parsedCache.timestamp).getTime();
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+        
+        if (cacheAge < twentyFourHours) {
+          explanations = parsedCache.explanations;
+        }
+      }
+      
+      // Generate new explanations if not cached or expired
+      if (!explanations) {
+        try {
+          const response = await fetch('/api/chart-explanations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reading })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            explanations = data.explanations;
+            
+            // Cache the explanations
+            localStorage.setItem(cacheKey, JSON.stringify({
+              explanations,
+              timestamp: new Date().toISOString()
+            }));
+          }
+        } catch (error) {
+          console.error('Failed to load chart explanations:', error);
+        }
+      }
+      
+      // Add explanation messages to chat
+      if (explanations) {
+        const explanationMessages: ChatMessage[] = explanations.map((explanation: any, index: number) => ({
+          id: `explanation-${index}`,
+          character: 'astrologer' as const,
+          content: `**${explanation.title}**\n\n${explanation.content}`,
+          timestamp: new Date()
+        }));
+        
+        setMessages(explanationMessages);
+      } else {
+        // Fallback to empty messages if explanations fail
+        setMessages([]);
+      }
+      
+      setExplanationsLoaded(true);
+    };
+    
+    loadDefaultExplanations();
+  }, [reading, explanationsLoaded]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || loading) return;
@@ -143,6 +207,76 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
     return `${signs[ascSign]} ${(reading.ascendant % 30).toFixed(2)}°`;
   };
 
+  // Parse chart2txt data for enhanced UI elements
+  const parseChart2TxtData = () => {
+    if (!reading.chartDescription) return null;
+    
+    const chartData = reading.chartDescription;
+    
+    // Extract element distribution
+    const elementMatch = chartData.match(/\[ELEMENT DISTRIBUTION\]\n(.+)/);
+    const elementData = elementMatch ? elementMatch[1] : null;
+    
+    // Extract modality distribution
+    const modalityMatch = chartData.match(/\[MODALITY DISTRIBUTION\]\n(.+)/);
+    const modalityData = modalityMatch ? modalityMatch[1] : null;
+    
+    // Extract dispositor tree
+    const dispositorMatch = chartData.match(/\[DISPOSITOR TREE\]\n((?:.|\n)*?)(?=\[|$)/);
+    const dispositorData = dispositorMatch ? dispositorMatch[1].trim() : null;
+    
+    // Extract planets with dignities
+    const planetsMatch = chartData.match(/\[PLANETS\]\n((?:.|\n)*?)(?=\[|$)/);
+    const planetsData = planetsMatch ? planetsMatch[1].trim() : null;
+    
+    return {
+      elements: elementData,
+      modalities: modalityData,
+      dispositors: dispositorData,
+      planetsDignities: planetsData
+    };
+  };
+
+  // Get aspect quality symbol and color
+  const getAspectQuality = (aspectName: string, orb: number) => {
+    const aspectInfo = {
+      'Conjunction': { symbol: '☌', color: 'text-yellow-600', quality: 'neutral' },
+      'Opposition': { symbol: '☍', color: 'text-red-600', quality: 'challenging' },
+      'Trine': { symbol: '△', color: 'text-green-600', quality: 'beneficial' },
+      'Square': { symbol: '□', color: 'text-red-500', quality: 'challenging' },
+      'Sextile': { symbol: '⚹', color: 'text-blue-600', quality: 'beneficial' },
+      'Quincunx': { symbol: '⚻', color: 'text-orange-600', quality: 'challenging' }
+    };
+    
+    const info = aspectInfo[aspectName as keyof typeof aspectInfo] || { symbol: '○', color: 'text-gray-600', quality: 'neutral' };
+    const orbClass = orb < 2 ? 'font-bold' : orb > 4 ? 'text-black/40' : '';
+    
+    return { ...info, orbClass };
+  };
+
+  // Extract planetary dignities from chart2txt
+  const getPlanetaryDignities = () => {
+    const chart2txtData = parseChart2TxtData();
+    if (!chart2txtData?.planetsDignities) return {};
+    
+    const dignities: Record<string, string> = {};
+    const lines = chart2txtData.planetsDignities.split('\n');
+    
+    lines.forEach(line => {
+      const match = line.match(/(\w+):.+?\[(.+?)\]/);
+      if (match) {
+        const planet = match[1];
+        const dignity = match[2];
+        dignities[planet] = dignity;
+      }
+    });
+    
+    return dignities;
+  };
+
+  const chart2txtData = parseChart2TxtData();
+  const planetaryDignities = getPlanetaryDignities();
+
   return (
     <div className="min-h-screen bg-[rgb(222,212,198)] text-black font-mono flex flex-col">
       {/* Mobile Overlay */}
@@ -206,10 +340,26 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
                           'Pluto': '♇', 'North Node': '☊'
                         };
                         
+                        const dignity = planetaryDignities[planet.name];
+                        const dignityColor = dignity?.includes('Domicile') ? 'text-green-700' :
+                                            dignity?.includes('Exaltation') ? 'text-blue-700' :
+                                            dignity?.includes('Fall') ? 'text-red-700' :
+                                            dignity?.includes('Detriment') ? 'text-orange-700' : '';
+                        
                         return (
                           <div key={index} className="flex justify-between">
                             <span>{symbols[planet.name] || '●'} {planet.name.substring(0, 3).toUpperCase()}:</span>
-                            <span>{planet.sign.substring(0, 3).toUpperCase()} {planet.degree.toFixed(1)}°{planet.retrograde ? 'Rx' : ''}</span>
+                            <span className={dignityColor}>
+                              {planet.sign.substring(0, 3).toUpperCase()} {planet.degree.toFixed(1)}°{planet.retrograde ? 'Rx' : ''}
+                              {dignity && dignity !== `Ruler: ${planet.name}` && (
+                                <span className="text-[8px] ml-1">
+                                  {dignity.includes('Domicile') ? '[DOM]' : 
+                                   dignity.includes('Exaltation') ? '[EXA]' : 
+                                   dignity.includes('Fall') ? '[FALL]' : 
+                                   dignity.includes('Detriment') ? '[DET]' : ''}
+                                </span>
+                              )}
+                            </span>
                           </div>
                         );
                       })
@@ -267,12 +417,17 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
                   <div className="h-64 overflow-y-auto px-2 pb-2">
                     <div className="space-y-0.5 text-[10px]">
                       {reading.aspects && reading.aspects.length > 0 ? (
-                        reading.aspects.map((aspect, index) => (
-                          <div key={index} className="flex justify-between">
-                            <span>{aspect.planet1.substring(0, 3)} {aspect.aspect.substring(0, 3)} {aspect.planet2.substring(0, 3)}</span>
-                            <span>{aspect.orb.toFixed(1)}°</span>
-                          </div>
-                        ))
+                        reading.aspects.map((aspect, index) => {
+                          const quality = getAspectQuality(aspect.aspect, aspect.orb);
+                          return (
+                            <div key={index} className={`flex justify-between ${quality.orbClass}`}>
+                              <span>
+                                <span className={quality.color}>{quality.symbol}</span> {aspect.planet1.substring(0, 3)} {aspect.planet2.substring(0, 3)}
+                              </span>
+                              <span className={quality.orbClass}>{aspect.orb.toFixed(1)}°</span>
+                            </div>
+                          );
+                        })
                       ) : (
                         <div className="text-black/40">No aspects calculated</div>
                       )}
@@ -281,6 +436,55 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
                 </div>
               </div>
 
+              {/* Enhanced Chart Analysis */}
+              {chart2txtData && (
+                <>
+                  {/* Element & Modality Distribution */}
+                  <div className="mb-4 grid grid-cols-2 gap-4">
+                    {chart2txtData.elements && (
+                      <div className="border border-black/30 p-2">
+                        <div className="text-black/60 mb-2 text-xs font-bold">ELEMENT BALANCE</div>
+                        <div className="text-[10px] space-y-0.5">
+                          {chart2txtData.elements.split('|').map((element, index) => (
+                            <div key={index} className="flex justify-between">
+                              <span>{element.trim()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {chart2txtData.modalities && (
+                      <div className="border border-black/30 p-2">
+                        <div className="text-black/60 mb-2 text-xs font-bold">MODAL BALANCE</div>
+                        <div className="text-[10px] space-y-0.5">
+                          {chart2txtData.modalities.split('|').map((modality, index) => (
+                            <div key={index} className="flex justify-between">
+                              <span>{modality.trim()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dispositor Tree */}
+                  {chart2txtData.dispositors && (
+                    <div className="mb-4">
+                      <div className="border border-black/30 p-2">
+                        <div className="text-black/60 mb-2 text-xs font-bold">DISPOSITOR CHAINS</div>
+                        <div className="text-[9px] space-y-0.5 text-black/80">
+                          {chart2txtData.dispositors.split('\n').slice(0, 6).map((line, index) => (
+                            <div key={index} className="font-mono">
+                              {line.replace('→', '→').replace('(final)', '[FINAL]').replace(/\(cycle\)/, '[CYCLE]')}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
 
             </div>
           </div>
@@ -316,10 +520,12 @@ export default function TerminalChat({ reading, onBack }: TerminalChatProps) {
                     msg.character === 'neptune' ? 'text-blue-500' :
                     msg.character === 'pluto' ? 'text-purple-600' :
                     msg.character === 'northNode' ? 'text-yellow-300' :
+                    msg.character === 'astrologer' ? 'text-amber-300' :
                     'text-white'
                   }`}>
                     <div className="font-bold mb-1">
-                      {msg.character === 'user' ? '> USER_QUERY:' : ''}
+                      {msg.character === 'user' ? '> USER_QUERY:' : 
+                       msg.character === 'astrologer' ? '> ASTROLOGER:' : ''}
                     </div>
                     <div className="pl-2 whitespace-pre-wrap break-words">
                       {msg.content}

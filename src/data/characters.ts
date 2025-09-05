@@ -169,16 +169,23 @@ export function generateSystemPrompt(character: PlanetaryCharacter, reading: Ast
   const aspectInfo = relevantAspects.length > 0 ? 
     `Key aspects: ${relevantAspects.map(a => `${a.aspect} ${a.planet1 === planetName ? a.planet2 : a.planet1}`).join(', ')}` : 
     'No major aspects';
+
+  // Extract relevant chart interpretation from chart2txt if available
+  const chartContext = (reading as any).chartDescription ? `
+
+FULL CHART CONTEXT:
+${(reading as any).chartDescription}` : '';
   
   return `You are ${character.name}, the ${planetName} in this chart. ${character.personality.split('.')[0]}.
 
 YOUR POSITION: ${planetName} in ${character.sign}
-${aspectInfo}
+${aspectInfo}${chartContext}
 
 RESPONSE RULES:
 - Keep responses concise (aim for 1-2 sentences, roughly 100-150 characters)
 - Answer from your unique planetary perspective
-- Reference your sign/aspects when relevant
+- Reference your sign/aspects/houses when relevant to the question
+- Use the full chart context above to provide deeper astrological insights
 - Be insightful but brief
 - Use your archetype's energy/voice
 - Complete your thoughts - don't cut off mid-sentence

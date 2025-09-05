@@ -53,11 +53,12 @@ export interface AstrologyReading {
   houseCusps: number[];
   birthInfo: BirthInfo;
   timezone: string;
+  chartDescription?: string; // Human-readable chart analysis from chart2txt
 }
 
 export interface ChatMessage {
   id: string;
-  character: 'sun' | 'moon' | 'mercury' | 'venus' | 'mars' | 'jupiter' | 'saturn' | 'uranus' | 'neptune' | 'pluto' | 'northNode' | 'user';
+  character: 'sun' | 'moon' | 'mercury' | 'venus' | 'mars' | 'jupiter' | 'saturn' | 'uranus' | 'neptune' | 'pluto' | 'northNode' | 'user' | 'astrologer';
   content: string;
   timestamp: Date;
 }

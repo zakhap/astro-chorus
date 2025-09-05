@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as sweph from 'sweph';
-
-// Initialize sweph
-try {
-  sweph.set_ephe_path(process.env.SWEPH_PATH || './ephemeris');
-} catch (error) {
-  console.warn('Could not set ephemeris path:', error);
-}
+import { chart2txt } from 'chart2txt';
 
 // Zodiac signs
 const ZODIAC_SIGNS = [
@@ -24,20 +17,101 @@ function getSignAndDegree(longitude: number): { sign: string; degree: number } {
   };
 }
 
-// Simplified timezone handling for MVP
-function getSimpleTimezoneOffset(cityName: string): number {
-  const timezones: Record<string, number> = {
-    'new york': -5, 'los angeles': -8, 'chicago': -6, 'london': 0,
-    'paris': 1, 'tokyo': 9, 'sydney': 11, 'berlin': 1, 'moscow': 3,
-    'mumbai': 5.5, 'beijing': 8, 'dubai': 4, 'singapore': 8,
-    'san francisco': -8
-  };
-  
-  const key = cityName.toLowerCase();
-  return timezones[key] || 0;
+// Function to geocode location using Photon API
+async function geocodeLocation(locationString: string): Promise<{ latitude: number; longitude: number }> {
+  try {
+    const params = new URLSearchParams();
+    params.append("layer", "city");
+    params.append("layer", "district");
+    params.append("q", locationString);
+    params.append("limit", "1");
+
+    const response = await fetch(`https://photon.komoot.io/api?${params.toString()}`);
+    const data = await response.json();
+
+    if (data?.features && data.features.length > 0) {
+      const coordinates = data.features[0].geometry.coordinates;
+      return {
+        latitude: coordinates[1],  // GeoJSON format returns [longitude, latitude]
+        longitude: coordinates[0]
+      };
+    }
+
+    throw new Error("Failed to retrieve location data");
+  } catch (error) {
+    console.error("Geocoding error:", error);
+    throw new Error("Failed to geocode location");
+  }
 }
 
-// Calculate aspects between planets  
+const ASTRO_API_ENDPOINT = "https://simple-astro-api.netlify.app/api/positions";
+
+interface PlanetPosition {
+  name: string;
+  longitude: number;
+  speed?: number;
+  retrograde?: boolean;
+}
+
+interface CalculationResult {
+  planets: PlanetPosition[];
+  ascendant: number;
+  midheaven: number;
+  date: string;
+  time: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  timezone?: string;
+}
+
+// Function to get planetary positions from simple-astro-api
+async function getPlanetaryPositions(
+  date: string,
+  time: string,
+  lat: number,
+  lng: number,
+): Promise<CalculationResult> {
+  try {
+    const url = `${ASTRO_API_ENDPOINT}?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("API error:", error);
+    throw new Error("Failed to get astrological data");
+  }
+}
+
+// Generate human-readable chart description using chart2txt
+function generateChartDescription(astrologyData: any, locationName: string, date: string, time: string): string {
+  try {
+    // Convert our data format to chart2txt format
+    // The key is that chart2txt expects 'degree' to be the longitude value (0-360)
+    const chart2txtData = {
+      name: 'Birth Chart', // Required field
+      planets: astrologyData.planets.map((planet: any) => ({
+        name: planet.name,
+        degree: planet.longitude, // Use longitude directly as degree
+      })),
+      ascendant: astrologyData.ascendant,
+      location: locationName,
+      timestamp: new Date(`${date.replace(/-/g, "/")} ${time.replace(/-/g, ":")}`),
+    };
+
+    return chart2txt(chart2txtData, { houseSystem: "whole_sign" });
+  } catch (error) {
+    console.error('Error generating chart description:', error);
+    return 'Chart description unavailable';
+  }
+}
+
+// Calculate aspects between planets
 function calculateAspects(planets: Array<{name: string; longitude: number}>) {
   const aspects: Array<{planet1: string; planet2: string; aspect: string; orb: number; exactDegrees: number}> = [];
   const aspectTypes = [
@@ -75,9 +149,15 @@ function calculateAspects(planets: Array<{name: string; longitude: number}>) {
   return aspects.sort((a, b) => a.orb - b.orb);
 }
 
+export async function GET() {
+  return NextResponse.json({ message: 'API route is working' });
+}
+
 export async function POST(request: NextRequest) {
+  console.log('API route called');
   try {
     const { date, time, location } = await request.json();
+    console.log('Request data:', { date, time, location });
     
     if (!date || !time || !location) {
       return NextResponse.json(
@@ -86,93 +166,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [year, month, day] = date.split('-').map(Number);
-    const [hour, minute, second = 0] = time.split(':').map(Number);
-    
-    // Get timezone offset
-    const tzOffset = getSimpleTimezoneOffset(location.name);
-    
-    // Adjust for timezone
-    let adjustedYear = year;
-    let adjustedMonth = month;
-    let adjustedDay = day;
-    let adjustedHour = hour + tzOffset;
-    
-    // Handle day changes due to timezone
-    if (adjustedHour < 0) {
-      const dateObj = new Date(year, month - 1, day - 1);
-      adjustedYear = dateObj.getFullYear();
-      adjustedMonth = dateObj.getMonth() + 1;
-      adjustedDay = dateObj.getDate();
-      adjustedHour += 24;
-    } else if (adjustedHour >= 24) {
-      const dateObj = new Date(year, month - 1, day + 1);
-      adjustedYear = dateObj.getFullYear();
-      adjustedMonth = dateObj.getMonth() + 1;
-      adjustedDay = dateObj.getDate();
-      adjustedHour -= 24;
+    // Geocode the location
+    let coordinates;
+    if (location.latitude && location.longitude) {
+      coordinates = { latitude: location.latitude, longitude: location.longitude };
+    } else {
+      coordinates = await geocodeLocation(location.name || location);
     }
-    
-    // Calculate Julian day
-    const julday = sweph.julday(
-      adjustedYear,
-      adjustedMonth,
-      adjustedDay,
-      adjustedHour + minute / 60 + second / 3600,
-      sweph.constants.SE_GREG_CAL
-    );
-    
-    // Define planets
-    const planets = [
-      { id: sweph.constants.SE_SUN, name: 'Sun' },
-      { id: sweph.constants.SE_MOON, name: 'Moon' },
-      { id: sweph.constants.SE_MERCURY, name: 'Mercury' },
-      { id: sweph.constants.SE_VENUS, name: 'Venus' },
-      { id: sweph.constants.SE_MARS, name: 'Mars' },
-      { id: sweph.constants.SE_JUPITER, name: 'Jupiter' },
-      { id: sweph.constants.SE_SATURN, name: 'Saturn' },
-      { id: sweph.constants.SE_URANUS, name: 'Uranus' },
-      { id: sweph.constants.SE_NEPTUNE, name: 'Neptune' },
-      { id: sweph.constants.SE_PLUTO, name: 'Pluto' },
-      { id: sweph.constants.SE_TRUE_NODE, name: 'North Node' },
-    ];
 
-    // Calculate positions for each planet
-    const planetPositions = planets.map((planet) => {
-      const result = sweph.calc_ut(
-        julday,
-        planet.id,
-        sweph.constants.SEFLG_SWIEPH | sweph.constants.SEFLG_SPEED
-      );
-      return {
-        name: planet.name,
-        longitude: result.data[0],
-        speed: result.data[3],
-        retrograde: result.data[3] < 0,
-        ...getSignAndDegree(result.data[0])
-      };
-    });
+    // Get astrological data from simple-astro-api
+    const astroData = await getPlanetaryPositions(
+      date,
+      time,
+      coordinates.latitude,
+      coordinates.longitude
+    );
+
+    // Transform the data to match our existing format
+    const planetPositions = astroData.planets.map((planet) => ({
+      name: planet.name,
+      longitude: planet.longitude,
+      speed: planet.speed || 1, // Default positive speed
+      retrograde: planet.speed ? planet.speed < 0 : false,
+      ...getSignAndDegree(planet.longitude)
+    }));
 
     // Extract individual planets for compatibility
-    const sun = planetPositions.find(p => p.name === 'Sun')!;
-    const moon = planetPositions.find(p => p.name === 'Moon')!;
-    const mercury = planetPositions.find(p => p.name === 'Mercury')!;
-    const venus = planetPositions.find(p => p.name === 'Venus')!;
-    const mars = planetPositions.find(p => p.name === 'Mars')!;
-    const jupiter = planetPositions.find(p => p.name === 'Jupiter')!;
-    const saturn = planetPositions.find(p => p.name === 'Saturn')!;
-    const uranus = planetPositions.find(p => p.name === 'Uranus')!;
-    const neptune = planetPositions.find(p => p.name === 'Neptune')!;
-    const pluto = planetPositions.find(p => p.name === 'Pluto')!;
-    const northNode = planetPositions.find(p => p.name === 'North Node')!;
-    
-    // Calculate houses
-    const houses = sweph.houses(julday, location.latitude, location.longitude, 'P');
+    const sun = planetPositions.find(p => p.name === 'Sun') || planetPositions.find(p => p.name.toLowerCase().includes('sun'));
+    const moon = planetPositions.find(p => p.name === 'Moon') || planetPositions.find(p => p.name.toLowerCase().includes('moon'));
+    const mercury = planetPositions.find(p => p.name === 'Mercury') || planetPositions.find(p => p.name.toLowerCase().includes('mercury'));
+    const venus = planetPositions.find(p => p.name === 'Venus') || planetPositions.find(p => p.name.toLowerCase().includes('venus'));
+    const mars = planetPositions.find(p => p.name === 'Mars') || planetPositions.find(p => p.name.toLowerCase().includes('mars'));
+    const jupiter = planetPositions.find(p => p.name === 'Jupiter') || planetPositions.find(p => p.name.toLowerCase().includes('jupiter'));
+    const saturn = planetPositions.find(p => p.name === 'Saturn') || planetPositions.find(p => p.name.toLowerCase().includes('saturn'));
+    const uranus = planetPositions.find(p => p.name === 'Uranus') || planetPositions.find(p => p.name.toLowerCase().includes('uranus'));
+    const neptune = planetPositions.find(p => p.name === 'Neptune') || planetPositions.find(p => p.name.toLowerCase().includes('neptune'));
+    const pluto = planetPositions.find(p => p.name === 'Pluto') || planetPositions.find(p => p.name.toLowerCase().includes('pluto'));
+    const northNode = planetPositions.find(p => p.name === 'North Node') || planetPositions.find(p => p.name.toLowerCase().includes('node'));
     
     // Calculate aspects
     const aspects = calculateAspects(planetPositions);
     
-    // Create detailed house information
+    // Create house information (simplified for now)
     const houseNames = [
       '1st House (Self)', '2nd House (Resources)', '3rd House (Communication)', 
       '4th House (Home)', '5th House (Creativity)', '6th House (Service)',
@@ -180,7 +215,13 @@ export async function POST(request: NextRequest) {
       '10th House (Career)', '11th House (Community)', '12th House (Spirituality)'
     ];
     
-    const houseInfo = houses.data.houses.map((cusp: number, index: number) => ({
+    // Generate basic house cusps based on ascendant
+    const houseCusps: number[] = [];
+    for (let i = 0; i < 12; i++) {
+      houseCusps.push((astroData.ascendant + (i * 30)) % 360);
+    }
+    
+    const houseInfo = houseCusps.map((cusp, index) => ({
       number: index + 1,
       name: houseNames[index],
       cusp: cusp,
@@ -188,20 +229,29 @@ export async function POST(request: NextRequest) {
       degree: Math.round((cusp % 30) * 100) / 100
     }));
     
-    // Determine timezone string
-    const timezone = `UTC${tzOffset >= 0 ? '+' : ''}${tzOffset}`;
-    
     const astrologyReading = {
       sun, moon, mercury, venus, mars, jupiter, saturn, uranus, neptune, pluto, northNode,
       planets: planetPositions,
       aspects,
       houses: houseInfo,
-      ascendant: houses.data.points[0],
-      midheaven: houses.data.points[1],
-      houseCusps: houses.data.houses,
-      birthInfo: { date, time, location },
-      timezone
+      ascendant: astroData.ascendant,
+      midheaven: astroData.midheaven,
+      houseCusps,
+      birthInfo: { 
+        date, 
+        time, 
+        location: {
+          name: location.name || location,
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude
+        }
+      },
+      timezone: 'UTC' // Simple-astro-api handles timezone internally
     };
+
+    // Generate human-readable chart description for AI characters
+    const chartDescription = generateChartDescription(astrologyReading, location.name || location.toString(), date, time);
+    astrologyReading.chartDescription = chartDescription;
 
     return NextResponse.json(astrologyReading);
     
